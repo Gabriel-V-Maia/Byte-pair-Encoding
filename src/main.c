@@ -1,40 +1,94 @@
-
 #include <stdio.h>
 #include <stddef.h>
+#include <stdlib.h>
+
+#define INITIAL_CAPACITY 4
+
+typedef struct {
+    char pair[3];
+} pair;
 
 typedef struct {
     unsigned short value;
 } token;
 
-/*
-  Gera um token a partir de dois caracteres.
-  Retorna 1 se o par for repetido (aa, bb, etc),
-  retorna 0 caso contrário.
- */
+typedef struct {
+    int* data;
+    size_t size;
+    size_t capacity;
+} Vector;
 
-int tokenize_pair(char a, char b, token *out)
+void init_vector(Vector* vec) 
 {
-    if (a == b) {
-        out->value = ((unsigned short)a << 8) | (unsigned short)b;
-        return 1;
+    vec->data = malloc(INITIAL_CAPACITY * sizeof(int));
+    if (vec->data == NULL) {
+        perror("Failed to allocate memory for vector");
+        exit(EXIT_FAILURE);
     }
-    return 0;
+    vec->size = 0;
+    vec->capacity = INITIAL_CAPACITY;
+}
+
+void append_vector(Vector* vec, token element) 
+{
+    if (vec->size == vec->capacity) 
+    {
+        size_t new_capacity = vec->capacity * 2;
+        int* new_data = realloc(vec->data, new_capacity * sizeof(int));
+        if (new_data == NULL) 
+        {
+            perror("Failed to reallocate memory for vector");
+            exit(EXIT_FAILURE);
+        }
+        vec->data = new_data;
+        vec->capacity = new_capacity;
+    }
+    vec->data[vec->size] = element.value;
+    vec->size++;
+}
+
+void free_vector(Vector* vec) 
+{
+    free(vec->data);
+    vec->data = NULL;
+    vec->size = 0;
+    vec->capacity = 0;
+}
+
+token tokenize_pair(pair Pair)
+{
+    token T;
+
+    T.value =
+        ((unsigned short)(unsigned char)Pair.pair[0] << 8) |
+         (unsigned short)(unsigned char)Pair.pair[1];
+
+    return T;
 }
 
 int main(void)
 {
-    const char str[] = "Soommetthiingg";
+    const char str[] = "The lazy fox jumps over the lazy dog";
     size_t str_size = sizeof(str) - 1;
+
+
+    Vector tokens;
+    init_vector(&tokens);
 
     for (size_t i = 0; i + 1 < str_size; i++)
     {
-        token t;
+        pair Pair;
 
-        if (tokenize_pair(str[i], str[i + 1], &t)) {
-            printf("repeat pair: %c%c -> token %u\n",
-                   str[i], str[i + 1], t.value);
-        }
+        Pair.pair[0] = str[i];
+        Pair.pair[1] = str[i + 1];
+        Pair.pair[2] = '\0';
+
+        token T = tokenize_pair(Pair);
+        append_vector(&tokens, T);
+
+        printf("%s = %d\n", Pair.pair, T.value);
     }
+
 
     return 0;
 }
